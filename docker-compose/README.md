@@ -17,10 +17,9 @@ sudo apt install -y docker-compose
 ```
 mkdir /opt/cardano/
 cd /opt/cardano/
-git clone https://github.com/truongcaoxuan/cnode-docker-compose.git
-cd cnode-docker-compose
-git clone https://github.com/inCaller/prometheus_bot.git
-
+git clone https://github.com/truongcaoxuan/cnode-spo.git
+cd cnode-spo/monitoring/
+git clone https://github.com/truongcaoxuan/prometheus_bot.git
 ```
 
 ## Run docker compose up monitoring

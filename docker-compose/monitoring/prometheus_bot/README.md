@@ -1,4 +1,5 @@
-- [prometheus_bot](#prometheus-bot)
+# Quick guide
+  * [prometheus_bot](#prometheus-bot)
   * [Compile](#compile)
   * [Usage](#usage)
     + [Configuring alert manager](#configuring-alert-manager)
@@ -10,8 +11,8 @@
   * [Production example](#production-example)
 
 # prometheus_bot
-
-This bot is designed to alert messages from [alertmanager](https://github.com/prometheus/alertmanager).
+- This bot clone from https://github.com/inCaller/prometheus_bot.git
+- This bot is designed to alert messages from [alertmanager](https://github.com/prometheus/alertmanager).
 
 ## Compile
 
