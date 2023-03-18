@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Quick guide
+=======
+  # Quick guide
+>>>>>>> fcfe3c7b93ec7c3a0c040af047fabd0ee03d6f9d
   * [prometheus_bot](#prometheus-bot)
   * [Compile](#compile)
   * [Usage](#usage)
