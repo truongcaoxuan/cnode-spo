@@ -1,0 +1,22 @@
+version: '3.3'
+
+services:
+  webserver:
+    image: nginx:latest
+    container_name: proxy-nginx
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - /opt/cardano/https/nginx/conf/:/etc/nginx/conf.d/:ro
+      - /opt/cardano/certbot/www:/var/www/certbot/:ro
+      - /opt/cardano/certbot/conf/:/etc/nginx/ssl/:ro
+  certbot:
+    image: certbot/certbot:latest
+    container_name: https-certbot
+    restart: always
+    volumes:
+      - /opt/cardano/certbot/www/:/var/www/certbot/:rw
+      - /opt/cardano/certbot/conf/:/etc/letsencrypt/:rw

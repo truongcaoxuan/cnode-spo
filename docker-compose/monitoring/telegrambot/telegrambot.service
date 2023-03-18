@@ -1,0 +1,19 @@
+[Unit]
+Description=Prometheus Telegram Bot Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=telegrambot
+Group=telegrambot
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/telegrambot \
+-c /etc/telegrambot/config.yaml \
+-l ":9087" \
+-t /etc/telegrambot/template_scada.tmpl
+SyslogIdentifier=telegrambot
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

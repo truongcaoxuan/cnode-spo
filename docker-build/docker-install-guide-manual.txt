@@ -1,0 +1,39 @@
+#============================
+# INSTALL DOCKER START
+#============================
+#--Check Kernel version
+uname -r
+
+#--Check OS architecture
+uname -m
+
+#--SET UP THE REPOSITORY
+#--Update the apt package index and 
+#--install packages to allow apt to use a repository over HTTPS:
+sudo apt-get -y update
+sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+
+#--Add Docker’s official GPG key:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt-key fingerprint 0EBFCD88
+
+#--Set up the stable repository
+#--x86_64 / amd64
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+#--INSTALL DOCKER ENGINE
+#--install the latest version of Docker Engine and containerd
+sudo apt-get -y install docker-ce docker-ce-cli containerd.io
+
+#--Verify that Docker Engine is installed correctly
+sudo docker run hello-world
+
+#--Set User docker sudo
+sudo groupadd docker
+sudo usermod -aG docker YOUR-USER
+
+# Reboot OS
+sudo reboot
+#============================
+# INSTALL DOCKER DONE!
+#============================

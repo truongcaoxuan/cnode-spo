@@ -1,0 +1,95 @@
+To start a simple repl, run:
+  ghci
+
+To start a new haskell project in the current directory, run:
+  cabal init --interactive
+
+To install other GHC versions and tools, run:
+  ghcup tui
+---------------------------------------
+
+#1 Install Requirements
+sudo apt-get update -y
+
+sudo apt-get install -y automake  pkg-config  libgmp-dev libssl-dev libtinfo-dev libsystemd-dev zlib1g-dev libsodium-dev libncursesw5 libtool \
+                        build-essential curl libffi-dev libffi7 libgmp10 libncurses-dev libncurses5 libtinfo5
+
+sudo apt-get install -y make g++ tmux git jq wget autoconf systemd htop nload curl zip unzip rsync cron python3 yarn 
+
+#3 Run cntools prereqs scripts
+mkdir "$HOME/tmp"
+cd "$HOME/tmp"
+curl -sS -o prereqs.sh https://raw.githubusercontent.com/cardano-community/guild-operators/master/scripts/cnode-helper-scripts/prereqs.sh
+chmod 700 prereqs.sh
+./prereqs.sh
+
+
+#3 Downloading and installing the GHC compiler:
+
+##3.1 --Download and install version 8.10.7 of GHC. The easiest way to do this is to use ghcup.
+curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+
+##3.2-- Open a new terminal (to get an updated environment) and run:
+ghcup install ghc 8.10.7
+ghcup install cabal 3.6.2.0
+ghcup set ghc 8.10.7
+ghcup set cabal 3.6.2.0
+which cabal
+export PATH=/home/truongcx/.ghcup/bin:/home/truongcx/.cabal/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+#4 Download and install libsodium:
+mkdir $HOME/git
+cd $HOME/git
+git clone https://github.com/input-output-hk/libsodium
+cd libsodium
+git checkout 66f017f1
+./autogen.sh
+./configure
+make
+sudo make install
+
+#5 Update PATH
+export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+echo export CNODE_HOME=/opt/cardano/cnode >> $HOME/.bashrc
+echo export CARDANO_NODE_SOCKET_PATH="$CNODE_HOME/sockets/node0.socket" >> $HOME/.bashrc
+source ~/.bashrc
+
+# Download and install libsecp256k1:
+cd $HOME/git
+git clone https://github.com/bitcoin-core/secp256k1
+cd secp256k1
+git checkout ac83be33
+./autogen.sh
+./configure --enable-module-schnorrsig --enable-experimental
+make
+sudo make install
+
+#6 Download the Cardano node sources:
+cd $HOME/git
+git clone https://github.com/input-output-hk/cardano-node.git
+#-- Change the working directory to the downloaded source code folder:
+cd cardano-node
+
+#-- Check out the latest version of cardano-node (choose the tag with the highest version number: TAGGED-VERSION):
+git fetch --all --recurse-submodules --tags
+git tag
+git checkout tags/1.35.5
+
+#-- Configuring the build options
+We explicitly use the GHC version that we installed earlier. This avoids defaulting to a system version of GHC that might be older than the one you have installed.
+cabal configure --with-compiler=ghc-8.10.7
+
+#-- Note, that for a development build you can avoid installing the custom libsodium library and add the following lines to the local project file:
+echo "package cardano-crypto-praos" >>  cabal.project.local
+echo "  flags: -external-libsodium-vrf" >>  cabal.project.local
+echo "with-compiler: ghc-8.10.7" >> cabal.project.local
+
+#-- For this to work, libsodium has to be in the system. For Ubuntu, this is achieved by:
+sudo apt install libsodium-dev
+
+#-- Build the node and CLI with cabal:
+$CNODE_HOME/scripts/cabal-build-all.sh -o
+
+#-- Check the version that has been installed:
+cardano-cli --version

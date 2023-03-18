@@ -1,0 +1,33 @@
+############# Define Rule Alert ###############
+# my global config
+############# Define Rule Alert ###############
+groups:
+- name: hostStatsAlert
+  rules:
+################ InstanceDown
+  - alert: InstanceDown
+    expr: up{job="node-exporter"}== 0
+    for: 60s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 60 seconds."
+################ hostCpuUsageAlert
+  - alert: hostCpuUsageAlert
+    expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100) > 85
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Instance {{ $labels.instance }} CPU usgae high"
+      description: "{{ $labels.instance }} CPU usage above 85% (current value: {{ $value }})"
+################ hostMemUsageAlert
+  - alert: hostMemUsageAlert
+    expr: 100 - (node_memory_MemFree_bytes+node_memory_Cached_bytes+node_memory_Buffers_bytes) / node_memory_MemTotal_bytes * 100 > 85
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Instance {{ $labels.instance }} MEM usgae high"
+      description: "{{ $labels.instance }} MEM usage above 85% (current value: {{ $value }})"

@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+    nginx:
+        image: nginx:stable-alpine
+        volumes:
+            - /opt/cardano/https/nginx/nginx-alpine.conf:/etc/nginx/conf.d/default.conf
+#            - /root/ssl/official/gveyes_net.crt:/root/ssl/official/gveyes_net.crt
+#            - /root/ssl/official/gveyes.net.private_key:/root/ssl/official/gveyes.net.private_key
+        network_mode: host
+        ipc: host
+        restart: unless-stopped     # or "always"
+        command: /bin/sh -c "nginx -g 'daemon off;'"

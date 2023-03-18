@@ -1,0 +1,109 @@
+# Global configs
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  external_labels:
+        monitor: 'node-monitoring'
+  # scrape_timeout is set to the global default (10s).
+
+scrape_configs:
+#---------------------------------------------------------------------
+# https://crypto2099.io/adding-pool-stats-to-grafana-dashboard/
+# Crape data from adapools
+#  - job_name: 'poolstats' # To crape data form text collector source import adapools
+#    scrape_interval: 15s
+#    static_configs:
+#      - targets: ['localhost:9100']
+#        labels:
+#          alias: 'adapools'
+#          type:  'pool-stats'
+#
+#---------------------------------------------------------------------
+# https://github.com/input-output-hk/cardano-node/releases
+# Cnode configuration
+  - job_name: 'cnode' # To scrape data from the running cardano-node
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['<IP>:12798']
+        labels:
+          alias: 'core'
+          type:  'cnode'
+      - targets: ['<IP>:12798']
+        labels:
+          alias: 'relay'
+          type:  'cnode'
+      - targets: ['<IP>:12798']
+        labels:
+          alias: 'relay'
+          type:  'cnode'
+
+#---------------------------------------------------------------------
+# https://github.com/prometheus/node_exporter/releases
+# Node exporter configuration
+  - job_name: 'node-exporter' # To scrape data from a node exporter to monitor the linux host metrics.
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    honor_timestamps: true
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          alias: 'local-node'
+          type:  'linux-system'
+#      - targets: ['<IP>:9091']
+#        labels:
+#          alias: 'remote-node'
+#          type:  'linux-system'
+      - targets: ['<IP>:9091']
+        labels:
+          alias: 'remote-node'
+          type:  'linux-system'
+
+#---------------------------------------------------------------------
+# https://github.com/prometheus-community/windows_exporter/releases
+# Windows exporter configuration
+  - job_name: 'windows-exporter' # To scrape data from a windhows exporter to monitor the host metrics.
+    scrape_interval: 15s
+    metrics_path: /metrics
+    
+    static_configs:
+      - targets: ['<IP>:9182']
+        labels:
+          alias: 'vps'
+          type:  'windows-system'
+      - targets: ['<IP>:9182']
+        labels:
+          alias: 'vps'
+          type:  'windows-system'
+      - targets: ['<IP>:9182']
+        labels:
+          alias: 'vps'
+          type:  'windows-system'
+          
+
+#---------------------------------------------------------------------
+# https://github.com/google/cadvisor
+# cAdvisor configuration
+  - job_name: 'cadvisor' # To scrape data from cAdvisor to monitor the docker metrics.
+    scrape_interval: 15s
+
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          alias: 'docker'
+          type:  'container'
+#---------------------------------------------------------------------
+# https://github.com/prometheus/alertmanager/releases/
+# Alertmanager configuration
+alerting:
+   alertmanagers:
+   - static_configs:
+      - targets: ['alertmanager:9093']
+#---------------------------------------------------------------------
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'
+rule_files:
+     #- "global-rules.yml"
+     #- "vmware-rules.yml"
+     - "system-rules.yml"
+     - "windows-rules.yml"

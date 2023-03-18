@@ -1,0 +1,152 @@
+version: '3.3'
+
+networks:
+  monitoring:
+    driver: bridge
+    
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
+  alertmanager_data: {}
+
+services:
+#-------------------------------------
+# Node Exporter
+#-------------------------------------
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - ${MONITORING_PATH}/exporters/poolstats/:/pool/
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/pool/'
+      - '--collector.textfile'
+    ports:
+      - 9091:9100
+    networks:
+      - monitoring
+#-------------------------------------
+# cAdvisor
+#-------------------------------------
+  cadvisor:
+    image: google/cadvisor
+    container_name: cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    networks:
+      - monitoring
+#-------------------------------------
+# ALERT MANAGER / TELEGRAMBOT
+#-------------------------------------
+  telegrambot:
+    build: ${MONITORING_PATH}/prometheus_bot/
+    image: prometheus-bot:latest
+    container_name: telegrambot
+    restart: always
+    volumes:
+      - ${MONITORING_PATH}/telegrambot/:/etc/telegrambot/
+    ports:
+      - 9087:9087
+    networks:
+      - monitoring
+      
+  alertmanager:
+    image: prom/alertmanager:latest
+    depends_on:
+      - telegrambot
+    container_name: alertmanager
+    restart: always
+    volumes:
+      - alertmanager_data:/alertmanager
+      - ${MONITORING_PATH}/alertmanager/:/config/
+    restart: always
+    command:
+      - '--config.file=/config/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - 9093:9093
+    networks:
+      - monitoring
+#-------------------------------------
+# PROMETHEUS
+#-------------------------------------     
+  prometheus:
+    image: prom/prometheus:latest
+    depends_on:
+      - node-exporter
+      - alertmanager
+      - cadvisor
+    container_name: prometheus
+    restart: always
+    volumes:
+      - ${MONITORING_PATH}/prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+    networks:
+      - monitoring
+#-------------------------------------
+# VISUALIZE / CHART / GRAPHIC
+#-------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    container_name: grafana
+    restart: always
+#    command:
+#      - '-e "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource"'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ${MONITORING_PATH}/grafana/dashboards:/var/lib/grafana/dashboards
+      - ${MONITORING_PATH}/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ${MONITORING_PATH}/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - 5000:3000
+    env_file:
+      - ${MONITORING_PATH}/grafana/grafana-variables.env
+    networks:
+      - monitoring
+#-------------------------------------
+# PROXY :: HTTP/HTTPS
+#-------------------------------------
+  proxy:
+    image: nginx:latest
+    container_name: proxy-nginx
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ${MONITORING_PATH}/proxy/nginx/:/etc/nginx/conf.d/:ro
+#      - ${MONITORING_PATH}/certbot/www:/var/www/certbot/:ro
+#      - ${MONITORING_PATH}/certbot/conf/:/etc/nginx/ssl/:ro
+
+#  certbot:
+#    image: certbot/certbot:latest
+#    container_name: https-certbot
+#    restart: always
+#    volumes:
+#      - ${MONITORING_PATH}/certbot/www/:/var/www/certbot/:rw
+#      - ${MONITORING_PATH}/certbot/conf/:/etc/letsencrypt/:rw

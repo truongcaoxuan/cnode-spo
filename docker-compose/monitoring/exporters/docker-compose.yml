@@ -1,0 +1,30 @@
+version: '3.3'
+
+networks:
+  monitoring:
+    driver: bridge
+
+services:
+#-------------------------------------
+# Node Exporter
+#-------------------------------------
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /opt/cardano/cnode-docker-compose/exporters/poolstats/:/pool/
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.textfile.directory=/pool/'
+      - '--collector.textfile'
+    ports:
+      - 9091:9100
+    networks:
+      - monitoring

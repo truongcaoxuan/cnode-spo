@@ -1,0 +1,15 @@
+[Unit]
+Description=AlertManager
+Documentation=https://github.com/prometheus/alertmanager
+Wants=network-online.target
+After=network-online.target
+[Service]
+Type=simple
+User=alertmanager
+Group=alertmanager
+Restart=on-failure
+ExecStart=/usr/local/alertmanager/alertmanager \
+--config.file=/usr/local/alertmanager/alertmanager.yml \
+--storage.path=/usr/local/alertmanager/data
+[Install]
+WantedBy=multi-user.target

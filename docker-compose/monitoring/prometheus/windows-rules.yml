@@ -1,0 +1,13 @@
+# windows_exporter released : https://github.com/prometheus-community/windows_exporter/releases
+# windows_exporter more detail : https://github.com/prometheus-community/windows_exporter
+groups:
+- name: serverStatsAlert
+  rules:
+  - alert: ServerDown
+    expr: up{job="windows-exporter"} == 0
+    for: 1m
+    labels:
+      severity: "Critical"
+    annotations:
+      summary: 'Server "{{ $labels.instance }}" down.'
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 60 seconds."

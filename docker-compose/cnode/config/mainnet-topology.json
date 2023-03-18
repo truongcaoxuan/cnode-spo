@@ -1,0 +1,120 @@
+{
+  "Producers": [
+    {
+      "addr": "liberty.kiwipool.org",
+      "port": 9630,
+      "valency": 1
+    },
+    {
+      "addr": "relays.thevikingpool.com",
+      "port": 5859,
+      "valency": 1
+    },
+    {
+      "addr": "relays.oasispool.io",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "relays.stakepool.at",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "derry.queenada.com",
+      "port": 7500,
+      "valency": 1
+    },
+    {
+      "addr": "ipclub29-2.relay.my-ip.at",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "relay.azureada.com",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "relays.skylightpool.com",
+      "port": 12007,
+      "valency": 1
+    },
+    {
+      "addr": "relay1.bluecheesestakehouse.com",
+      "port": 5001,
+      "valency": 1
+    },
+    {
+      "addr": "relay1.goatstake.com",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "relay-vm2.plutus-staking.com",
+      "port": 3011,
+      "valency": 1
+    },
+    {
+      "addr": "node1.stakelove.com",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "relaynode1.diing.com",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "relay2.hyperlinkpool.kr",
+      "port": 3003,
+      "valency": 1
+    },
+    {
+      "addr": "ipclub29-1.relay.my-ip.at",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "singapore.cardanode.com.au",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "adarelay2.truestaking.com",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "r2.spireblockchain.com",
+      "port": 3001,
+      "valency": 1
+    },
+    {
+      "addr": "truth.kiwipool.org",
+      "port": 9630,
+      "valency": 1
+    },
+    {
+      "addr": "relay1.terminada.io",
+      "port": 2700,
+      "valency": 1
+    },
+    {
+      "addr": "sydney.cardanode.com.au",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "example.com",
+      "port": 6000,
+      "valency": 1
+    },
+    {
+      "addr": "relays-new.cardano-mainnet.iohk.io",
+      "port": 3001,
+      "valency": 2
+    }
+  ]
+}
+

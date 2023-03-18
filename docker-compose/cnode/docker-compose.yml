@@ -1,0 +1,30 @@
+version: '3.3'
+
+networks:
+  cnode:
+    driver: bridge
+  monitoring:
+    driver: bridge
+    
+services:
+
+  cardano-node:
+    image: inputoutput/cardano-node:${CNODE_VERSION}
+    container_name: ${CNODE_CONTAINER_NAME}
+    restart: always
+    volumes:
+      - ${CNODE_PATH}/db/:/opt/cardano/data/
+      - ${CNODE_PATH}/ipc/:/opt/cardano/ipc/
+      - ${CNODE_PATH}/config:/opt/cardano/config/
+      - ${CNODE_PATH}/scripts/:/opt/cardano/scripts/
+      - ${CNODE_PATH}/priv/:/opt/cardano/priv/
+    command:
+      - '-e NETWORK=${CNODE_NETWORK}'
+    ports:
+      - ${CNODE_PORT}:3001
+      - ${CNODE_METRICS_PORT}:12798
+    env_file:
+      - /opt/cardano/cnode/cnode-variables.env
+    entrypoint: /opt/cardano/scripts/run-node
+    networks:
+      - cnode

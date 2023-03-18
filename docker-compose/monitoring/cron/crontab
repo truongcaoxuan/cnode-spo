@@ -1,0 +1,65 @@
+# Edit this file to introduce tasks to be run by cron.
+# 
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# 
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+# 
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+# 
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+# 
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
+MAILTO=""
+#
+#== WEKKLY ===
+#--: At 00:10 on Monday
+10 0 * * 1    sudo apt-get update -y
+#--: At 00:20 on Monday
+20 0 * * 1   sudo apt-get upgrade -y
+#--: At 00:30 on Monday
+30 0 * * 1   sudo apt autoremove
+#--: At 00:40 on Monday
+40 0 * * 1   sudo apt-get clean
+#--: At 00:50 on Monday :: clear container logs
+50 0 * * 1   sudo sh -c "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
+#
+#=== REBOOT ===# 
+#-- autorun scripts on startup when system reboot
+#@reboot sleep 5 && sudo /opt/cardano/cnode/scripts/reboot_cli.sh
+#@reboot /opt/cardano/cnode/scripts/start_all.sh
+#--: Delete iptables on startup
+# @reboot sleep 15 && sudo /usr/sbin/iptables -F
+#
+#=== DAILY === 
+#--:At 05:11 : clearlogs cnode run with cntool
+# 11 5 * * *   /opt/cardano/cnode/scripts/clearLogs.sh
+#--:At 05:12 : clean caches
+# 22 5 * * * /opt/cardano/cnode/scripts/cleanCaches.sh
+#--:At 05:13 : Run poolstatsUpdater
+13 5 * * *   /opt/cardano/cnode-docker-compose/scripts/poolstatsUpdater.sh
+#
+#=== HOURLY ===
+#--:At minute 5: Run topologyUpdater cnode run cntool
+5 * * * *   /opt/cardano/cnode/scripts/topologyUpdater.sh
+#
+#=== EVERY FEW MINUTES ===
+#--:At every 55th minute :: check RAM High usage then reboot system
+# */55 * * * *  /opt/cardano/cnode/scripts/memory_alert.sh
+#--:At every 20th minute :: DROP IP - PING ICMP RTT--- Peer IN CNODE
+# */20 * * * *  /opt/cardano/cnode/scripts/peerIN_check.sh
+#
+#=== EVERY FEW HOURS ===
+#--:Every 24th hour :At minute 10: Delete all iptable rule chain
+# 10 */24 * * * sudo /usr/sbin/iptables -F
