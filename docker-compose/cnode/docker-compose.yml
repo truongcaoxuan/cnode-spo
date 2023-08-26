@@ -3,11 +3,11 @@ version: '3.3'
 networks:
   cnode:
     driver: bridge
-  monitoring:
-    driver: bridge
     
 services:
-
+#-------------------------------------
+# Cardano Node
+#-------------------------------------
   cardano-node:
     image: inputoutput/cardano-node:${CNODE_VERSION}
     container_name: ${CNODE_CONTAINER_NAME}

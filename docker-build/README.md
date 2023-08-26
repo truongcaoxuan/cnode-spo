@@ -1,76 +1,80 @@
-#PREREQ :: INSTALL DOCKER
+# Docker build Cardano Node
+
+## PREREQ :: INSTALL DOCKER
 
 Option1: manual install docker step by step in **docker-install-guide-manual.txt**
 
 Option 2: automatic installl docker by run **docker-install.sh**
 
-NEXT STEP >>
+Update git to automatically set line ending to LF
 
-**CLONE CNODE DOCKER BUILD**
-
-#* update git to automatically set line ending to LF
-```
+```bash
 git config --global core.eol lf
 git config --global core.autocrlf input
-git clone https://github.com/truongcaoxuan/cnode-docker.git
 ```
-#============================================================
+## Start Docker build cnode
 
-# DOCKER BUILD CNODE : START!
+### **---- STEP1 ----**
 
-#============================================================
-
-**---- STEP1 ----**
-```
+```bash
 docker pull cardanocommunity/cardano-node:stage1
 ```
-**---- STEP2 ----**
-```
+
+### **---- STEP2 ----**
+
+```bash
 docker build --force-rm -t vnpip/cnode:stage2 -f dockerfile_stage2 .
-```
-
 #docker tag IMAGE vnpip/cnode:stage2
-
-**---- STEP3 ----**
-
-**Build IMAGE (default have no db)**
 ```
+
+### **---- STEP3 ----**
+
+#### **Build IMAGE (default have no db)**
+
+```bash
 docker build --force-rm -t vnpip/cnode:stage3 -f dockerfile_stage3 .
 docker build --force-rm --build-arg=NONEROOTUSER=vnpip -t vnpip/cnode:stage3 -f dockerfile_stage3 .
 ```
-**Commit IMAGE from Container with db sync**
-```
+#### **Commit IMAGE from Container with db sync**
+
+```bash
 docker commit CONTAINER  truongcx/cnode-commit
 ```
-#============================================================
 
-DOCKER BUILD CNODE : DONE! 
+## Run docker container cnode!
 
-#============================================================
+### **Tag IMAGE**
 
-**--Tag IMAGE**
-```
+```bash
 docker tag IMAGE vnpip/cnode:stage3
 ```
-**RUNNING TEST CONTAINER**
-```
+
+### **RUNNING TEST CONTAINER**
+
+```bash
 docker network create cardano-mainnet
 docker run -ti --privileged --rm --network=cardano-mainnet -p 6000:6000 -p 12798:12798 --name relay1 vnpip/cnode:stage3
 docker run -ti --privileged --rm --network=cardano-mainnet -p 6000:6000 -p 12798:12798 --name relay1 vnpip/cnode-commit
 ```
-**RUNNING CONTAINER**
-```
+
+### **RUNNING CONTAINER**
+
+```bash
 docker network create cardano-mainnet
 docker run -dti --privileged --network=cardano-mainnet --restart always -p 6000:6000 -p 12798:12798 --name relay1 vnpip/cnode:stage3
 docker run -dti --privileged --network=cardano-mainnet --restart always -p 6000:6000 -p 12798:12798 --name relay1 vnpip/cnode-commit
 ```
-# --Docker Images
-```
+
+### --Docker Images
+
+```bash
 docker images
 docker rmi IMAGES
 ```
-# --Docker Container
-```
+
+### --Docker Container
+
+```bash
 docker ps
 docker ps -a
 docker rm CONTAINER
@@ -79,40 +83,54 @@ docker attach CONTAINER
 docker update --restart always CONTAINER
 docker inspect CONTAINER
 ```
-**--Exit container**
+
+### **--Exit container**
 
 Ctrl-P /Ctrl-Q
 
-**--Start / Stop cnode**
-```
+### **--Start / Stop cnode**
+
+```bash
 nodestart
 nodestop
 ```
-**--crontab setting**
-```
+
+### **--crontab setting**
+
+```bash
 crontab -e
 ```
-**--run gLiveView**
 
+### **--run gLiveView**
+
+```bassh
 gLiveView
-
-# --- PUSH IMAGE TO DOCKER HUB ---
 ```
+
+### --- PUSH IMAGE TO DOCKER HUB ---
+
+```bash
 docker login -u USER -p PASSWORD
 ```
-**--Tag Build Images to Docker Hub Tag**
-```
+
+#### **--Tag Build Images to Docker Hub Tag**
+
+```bash
 docker tag cardanocommunity/cardano-node:stage1 vnpip/cnode:stage1
 ```
-**--Push Images to Docker Hub**
-```
+
+#### **--Push Images to Docker Hub**
+
+```bash
 docker push vnpip/cnode:stage1
 docker push vnpip/cnode:stage2
 docker push vnpip/cnode:stage3
 docker push vnpip/cnode-commit
 ```
-**VM/ Host crontab**
-```
+
+### **VM/ Host crontab**
+
+```cron
 #== WEKKLY ===
 #--: At 00:10 on Monday
 10 0 * * 1    sudo apt-get update -y
@@ -133,16 +151,13 @@ docker push vnpip/cnode-commit
 10 */24 * * * docker exec relay1 sudo /usr/sbin/iptables -F
 ```
 
-# --Source Docker Hub
+## --Source Docker Hub
 
-https://hub.docker.com/r/vnpip/cnode
+<https://hub.docker.com/r/vnpip/cnode>
+<https://hub.docker.com/r/cardanocommunity/cardano-node>
+<https://hub.docker.com/r/inputoutput/cardano-node>
 
-https://hub.docker.com/r/cardanocommunity/cardano-node
+## --Source Dockerfile
 
-https://hub.docker.com/r/inputoutput/cardano-node
-
-# --Source Dockerfile
-
-https://github.com/cardano-community/guild-operators/tree/fa29ea533c33b1b561cd3faeb60fa03255f7b43b/files/docker/node
-
-https://gitlab.com/viper-staking/docker-containers/-/tree/master/cardano-node
+<https://github.com/cardano-community/guild-operators/tree/fa29ea533c33b1b561cd3faeb60fa03255f7b43b/files/docker/node>
+<https://gitlab.com/viper-staking/docker-containers/-/tree/master/cardano-node>
