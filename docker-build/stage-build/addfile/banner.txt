@@ -1,0 +1,16 @@
+                         _
+__    __ __     __ __   (_)__     
+\ \  / / / \   / / _ \ / / _ \ ___  
+ \ \/ / / \ \ / / .__// / .__/(_-<
+  \_\/_/   \_/_/_/   /_/_/   /__/ 
+                         
+MENU
+Availbles tools:
+-- cntools : gLiveView
+-- nodestart : nodestop
+-- cleancaches : clearlogs
+-- memory_alert : peerIN_check
+-- poolstatsUpdater : downG
+Available services:
+-- crontab
+-- node_exporter

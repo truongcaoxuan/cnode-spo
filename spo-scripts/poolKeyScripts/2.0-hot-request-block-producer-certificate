@@ -1,0 +1,44 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_hot_node
+
+# Start with a bit of housekeeping
+# When we originally setup the cold node, we created
+# vrf.skey and vrf.vkey. Those belong in the HOT directory. 
+# And they don't need to be shuffled back and forth all the time. 
+
+if [ -f "$SHARE/vrf.skey" ]; then
+  mv -f $SHARE/vrf.skey $HOT/
+fi
+if [ -f "$SHARE/vrf.vkey" ]; then
+  mv -f $SHARE/vrf.vkey $HOT/
+fi
+
+
+# Generate a KES key and get it ready for signing. 
+# We give them unique names since we don't want
+# to interrupt the on-line running block producer
+# until everything is signed and ready to go.
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+cardano-cli node key-gen-KES \
+    --verification-key-file $HOT/kes.vkey.$TIMESTAMP \
+    --signing-key-file $HOT/kes.skey.$TIMESTAMP
+cp $HOT/kes.vkey.$TIMESTAMP $SHARE/
+
+echo " "
+echo "Done"
+echo " "
+echo "We created new KES keys for the block producer and placed"
+echo "'kes.vkey.$TIMESTAMP' into the SHARE directory ($SHARE)."
+echo "Copy the SHARE directory to the COLD node and run:"
+echo " "
+echo "    2.1-cold-sign-block-producer-certificate"
+echo " "
+echo "New keys are needed every 90 days."
+echo "The next key rotation is around: "$(date -d "+90 days")
+echo " "

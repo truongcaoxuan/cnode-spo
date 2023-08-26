@@ -1,0 +1,33 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_cold_node
+
+kesPeriod=$(cat $SHARE/kesPeriod)
+
+echo " "
+for vkey in $(ls $SHARE/kes.vkey.*); do
+  TIMESTAMP=$(echo $vkey | sed 's/.*kes.vkey.//')
+  cert=$SHARE/node.cert.$TIMESTAMP
+  echo "$TIMESTAMP  Sign  $vkey -> $cert "
+  cardano-cli node issue-op-cert \
+    --kes-verification-key-file $vkey \
+    --cold-signing-key-file $COLD/node.skey \
+    --operational-certificate-issue-counter $SHARE/node.counter \
+    --kes-period $kesPeriod \
+    --out-file $cert
+done
+
+echo " "
+echo "Done"
+echo " "
+echo "We signed the KES keys in the SHARE directory ($SHARE)"
+echo "Copy the SHARE directory to the HOT node and run:"
+echo " "
+echo "    2.2-hot-install-block-producer-certificate"
+echo " "
+

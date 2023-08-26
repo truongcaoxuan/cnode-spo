@@ -1,0 +1,42 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_hot_node
+
+currentSlot=$(cat $SHARE/currentSlot)
+stakePoolDeposit=$(cat $SHARE/params.json | jq -r '.stakePoolDeposit')
+echo stakePoolDeposit: $stakePoolDeposit
+
+# see 'config'
+get_balance $(cat $SHARE/payment.addr)
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat $SHARE/payment.addr)+$(( ${total_balance} ))  \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
+    --fee 0 \
+    --certificate-file $SHARE/pool.cert \
+    --certificate-file $SHARE/deleg.cert \
+    --out-file $TMPDIR/tx.fee.tmp
+
+# see 'config'
+calculate_fee $TMPDIR/tx.fee.tmp 3
+
+txOut=$((${total_balance}-${fee}))
+echo txOut: ${txOut}
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat $SHARE/payment.addr)+${txOut} \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
+    --fee ${fee} \
+    --certificate-file $SHARE/pool.cert \
+    --certificate-file $SHARE/deleg.cert \
+    --out-file $SHARE/register_pool.tx.raw
+
+echo Done
+

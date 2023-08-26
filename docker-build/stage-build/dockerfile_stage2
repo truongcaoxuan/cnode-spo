@@ -1,0 +1,92 @@
+#========================================================
+# vnpip/cnode:stage2 : Build Cardano node binary
+#========================================================
+#FROM vnpip/cnode:stage1 AS build
+FROM cardanocommunity/cardano-node:stage1 AS build
+
+LABEL maintainer="VNPIPS Staking Team (ada.vnpips.com)"
+
+ENV \
+DEBIAN_FRONTEND=noninteractive \
+LANG=C.UTF-8 \
+CNODE_HOME=/opt/cardano/cnode \
+PATH=$CNODE_HOME/scripts:/root/.cabal/bin:/root/.ghcup/bin:$PATH \
+TZ=Asia/Ho_Chi_Minh
+
+
+# Configure tzdata
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Switch to root user : to run privileged command
+# --- Usually you won't be needed it - Depends on base image
+USER root
+
+# Update and install the required packages
+RUN apt-get update \
+  && apt-get install -y \
+     build-essential libffi-dev libffi6 libgmp-dev libgmp10 libncurses-dev libncurses5 libtinfo5 \
+     automake autoconf pkg-config libssl-dev libtinfo-dev \
+     libsystemd-dev libncursesw5 libtool zlib1g-dev \
+     make g++ tmux git jq wget curl zip unzip rsync  \
+     cron nano sudo \
+  && apt-get autoremove \
+  && apt-get autoclean
+
+# Build and install the IOHK fork of [libsodium].
+RUN git clone https://github.com/input-output-hk/libsodium \
+    && cd libsodium \
+    && git checkout 66f017f1 \
+    && ./autogen.sh \
+    && ./configure \
+    && make \
+    && make install \
+    && cd .. && rm -rf libsodium
+
+# Install [GHC]
+ADD addfile/ghc-version.txt ./
+RUN GHCVERSION=$(cat ghc-version.txt) \
+  && wget https://downloads.haskell.org/ghc/$GHCVERSION/ghc-$GHCVERSION-x86_64-deb9-linux.tar.xz \
+  && tar -xf ghc-$GHCVERSION-x86_64-deb9-linux.tar.xz \
+  && rm ghc-$GHCVERSION-x86_64-deb9-linux.tar.xz \
+  && cd ghc-$GHCVERSION \
+  && ./configure \
+  && make install \
+  && ghc --version \
+  && cd .. \
+  && rm -rf /ghc-$GHCVERSION
+
+# Install [cabal]
+ADD addfile/cabal-version.txt ./ 
+RUN CBVERSION=$(cat cabal-version.txt) \
+#  && wget https://downloads.haskell.org/~cabal/cabal-install-$CBVERSION/cabal-install-$CBVERSION-x86_64-unknown-linux.tar.xz \
+#  && tar -xf cabal-install-$CBVERSION-x86_64-unknown-linux.tar.xz \
+#  && rm cabal-install-$CBVERSION-x86_64-unknown-linux.tar.xz cabal.sig \
+  && wget https://downloads.haskell.org/~cabal/cabal-install-$CBVERSION/cabal-install-$CBVERSION-x86_64-ubuntu-16.04.tar.xz \
+  && tar -xf cabal-install-$CBVERSION-x86_64-ubuntu-16.04.tar.xz \
+  && rm cabal-install-$CBVERSION-x86_64-ubuntu-16.04.tar.xz \ 
+  && mv cabal ~/.cabal/bin/ \
+# && mv cabal /usr/local/bin/ \
+  && ~/.cabal/bin/cabal update \
+  && ~/.cabal/bin/cabal --version \
+  && cd ..
+
+# Install [cardano-node / cardano-cli]
+ADD addfile/cardano-node-latest.txt ./
+RUN git clone https://github.com/input-output-hk/cardano-node.git \
+  && export BOOTSTRAP_HASKELL_NO_UPGRADE=1 \
+  && TAG=$(cat cardano-node-latest.txt) \
+  && GHCVERSION=$(cat ghc-version.txt) \
+  && cd cardano-node \
+  && git fetch --all --recurse-submodules --tags \
+  && git tag && git checkout tags/$TAG \
+  && ~/.cabal/bin/cabal configure --with-compiler=ghc-$GHCVERSION \
+  && echo "package cardano-crypto-praos" >>  cabal.project.local \
+  && echo "  flags: -external-libsodium-vrf" >>  cabal.project.local \
+  && ~/.cabal/bin/cabal build -j16 all \
+  && cp -p dist-newstyle/build/x86_64-linux/ghc-$GHCVERSION/cardano-node-$TAG/x/cardano-node/build/cardano-node/cardano-node ~/.cabal/bin \
+  && cp -p dist-newstyle/build/x86_64-linux/ghc-$GHCVERSION/cardano-cli-$TAG/x/cardano-cli/build/cardano-cli/cardano-cli ~/.cabal/bin \
+  && apt-get -y remove libpq-dev build-essential pkg-config libffi-dev libgmp-dev libssl-dev libtinfo-dev libsystemd-dev zlib1g-dev make g++ && apt-get -y purge && apt-get -y clean && apt-get -y autoremove \
+  && cardano-node --version
+
+#  && bash $CNODE_HOME/scripts/cabal-build-all.sh \
+#  && cardano-node --version

@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_cold_node
+
+cardano-cli transaction sign \
+    --tx-body-file $SHARE/register_stake_addr.tx.raw \
+    --signing-key-file $COLD/payment.skey \
+    --signing-key-file $COLD/stake.skey \
+    $NETWORK1 $NETWORK2 \
+    --out-file $SHARE/register_stake_addr.tx.signed
+
+echo Done

@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_hot_node
+
+currentSlot=$(cat $SHARE/currentSlot)
+stakeAddressDeposit=$(cat $SHARE/params.json | jq -r '.stakeAddressDeposit')
+echo stakeAddressDeposit : $stakeAddressDeposit
+
+# see 'config'
+get_balance $(cat $SHARE/payment.addr)
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat $SHARE/payment.addr)+0 \
+    --invalid-hereafter $(( ${currentSlot} + 10000 )) \
+    --fee 0 \
+    --out-file $TMPDIR/register_stake_addr.fee.tx.raw \
+    --certificate $SHARE/stake.cert
+
+# see 'config'
+calculate_fee $TMPDIR/register_stake_addr.fee.tx.raw  2
+
+requiredFunds=$((${stakeAddressDeposit}+${fee}))
+txOut=$((${total_balance}-${requiredFunds}))
+echo Change Output: ${txOut}
+
+if [ $txOut -lt 0 ]; then
+  echo "Insufficient funds."
+  echo "Funds available must be greater than stakeAddressDeposit + fee = ${requiredFunds}.  Current balance = ${total_balance}"
+  exit 1
+fi
+
+cardano-cli transaction build-raw \
+    ${tx_in} \
+    --tx-out $(cat $SHARE/payment.addr)+${txOut} \
+    --invalid-hereafter $(( ${currentSlot} + 10000)) \
+    --fee ${fee} \
+    --certificate-file $SHARE/stake.cert \
+    --out-file $SHARE/register_stake_addr.tx.raw
+
+echo Done

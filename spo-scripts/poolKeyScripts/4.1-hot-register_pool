@@ -1,0 +1,30 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_hot_node
+
+# This step begins the process of advertising metadata about the stakepool
+# on the blockchain. 
+# 
+
+if [ ! -f poolMetaData.url ]; then
+  echo "ERROR: You must provide two files:"
+  echo "   poolMetaData.json  -  published on a public website. See: "
+  echo "                         https://developers.cardano.org/docs/stake-pool-course/handbook/register-stake-pool-metadata/"
+  echo "   poolMetaData.url   -  a URL to the aforementioned .json file."
+  echo "If you only provide poolMetaData.url, this script will 'wget' it for you. "
+  exit 1
+fi
+URL=$(cat poolMetaData.url)
+if [ ! -f poolMetaData.json ]; then
+  curl $URL -o poolMetaData.json
+fi
+
+cardano-cli stake-pool metadata-hash --pool-metadata-file poolMetaData.json > $SHARE/poolMetaDataHash.txt
+cp -f poolMetaData.url $SHARE/
+
+echo Done

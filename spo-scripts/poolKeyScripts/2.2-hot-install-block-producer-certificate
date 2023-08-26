@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_hot_node
+
+set +e
+certs=$(ls -1 $SHARE | grep 'node.cert\.')
+set -e
+if [ "x$certs" != "x" ]; then 
+  for cert in $(ls -1 $SHARE/node.cert.*); do
+    echo "mv  $cert -> $HOT"
+    mv -f $cert $HOT/
+  done
+fi
+
+# a bit of housecleaning....
+rm -f $SHARE/kes.vkey.*
+
+# Now we have to update the symlinks which point to the most-recent keys
+cd $HOT
+cert=$(ls -1 node.cert.* | sort | tail --lines=1)
+TIMESTAMP=$(echo $cert | sed 's/.*node.cert.//')
+skey=kes.skey.$TIMESTAMP
+vkey=kes.vkey.$TIMESTAMP
+
+rm -f kes.skey kes.vkey node.cert
+ln -s $skey kes.skey
+ln -s $vkey kes.vkey
+ln -s $cert node.cert
+
+echo " "
+echo "Done"
+echo " "
+echo "Symlinks were updated to point to the current keys+certs."
+echo "Does this look correct?"
+echo " "
+echo "ls -alh $HOT"
+ls --color=auto -alh
+echo " "
+echo "It's probably a good idea to keep the most-recently-used certs, but"
+echo "older certs can be safely deleted."
+echo " "
+echo "Restart cardano-node to use the new certificate:"
+echo " "
+echo "    # as yourself, not 'cardano', run:"
+echo "    # WHEN WE ARE NOT PRODUCING A BLOCK - how do we know? TBD"
+echo "    sudo systemctl restart cardano.service"
+echo " "
+
+

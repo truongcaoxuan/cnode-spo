@@ -1,0 +1,51 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_cold_node
+
+POOL_MARGIN=0.15
+POOL_PLEDGE=1000000000
+POOL_HOST=example.com
+POOL_PORT=3009
+
+echo "WARNING WARNING WARNING"
+echo "Edit this file and set the following (if necessary):"
+echo "   POOL_MARGIN = $POOL_MARGIN "
+echo "   POOL_PLEDGE = $POOL_PLEDGE"
+echo "   POOL_HOST = $POOL_HOST"
+echo "   POOL_PORT = $POOL_PORT"
+
+
+minPoolCost=$(cat $SHARE/params.json | jq -r .minPoolCost)
+echo minPoolCost: ${minPoolCost}
+
+cardano-cli stake-pool registration-certificate \
+    --cold-verification-key-file $COLD/node.vkey \
+    --vrf-verification-key-file $COLD/vrf.vkey \
+    --pool-pledge $POOL_PLEDGE \
+    --pool-cost $minPoolCost \
+    --pool-margin $POOL_MARGIN \
+    --pool-reward-account-verification-key-file $COLD/stake.vkey \
+    --pool-owner-stake-verification-key-file $COLD/stake.vkey \
+    $NETWORK1 $NETWORK2 \
+    --single-host-pool-relay $POOL_HOST \
+    --pool-relay-port $POOL_PORT \
+    --metadata-url $(cat $SHARE/poolMetaData.url) \
+    --metadata-hash $(cat $SHARE/poolMetaDataHash.txt) \
+    --out-file $SHARE/pool.cert
+
+cardano-cli stake-address delegation-certificate \
+    --stake-verification-key-file $COLD/stake.vkey \
+    --cold-verification-key-file $COLD/node.vkey \
+    --out-file $SHARE/deleg.cert
+
+echo Done
+
+
+
+
+

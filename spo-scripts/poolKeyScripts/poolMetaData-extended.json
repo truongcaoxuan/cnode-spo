@@ -1,0 +1,28 @@
+{
+  "serial": 870,
+  "pool": {
+    "id": "69579373ec20f2f82d2dc2360410350b308112f2939f92a",
+    "country": "JPN",
+    "status": "active",
+    "contact": {
+      "primary": "email",
+      "email": "info@demopool.org",
+      "facebook": "demopool12",
+      "github": "demopooldev",
+      "feed": "https://www.demopool.org/feed.xml",
+      "telegram": "demopool",
+      "twitter": "demopoolbird"
+    },
+    "media_assets": {
+      "icon_png_64x64": "https://www.demopool.org/media/icon64.png",
+      "logo_png": "https://www.demopool.org/media/logo.png",
+      "logo_svg": "https://www.demopool.org/media/logo.svg",
+      "color_fg": "#AABBCC",
+      "color_bg": "#C0C0C0"
+    },
+    "itn": {
+      "owner": "ed25519_pk1...",
+      "witness": "ed25519_sig1..."
+    }
+  }
+}

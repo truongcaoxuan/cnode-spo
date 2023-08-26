@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/usr/local/bin/prometheus --web.max-connections=3 --config.file=PROMETHEUS_CONFIG_FILE
+
+[Install]
+WantedBy=multi-user.target

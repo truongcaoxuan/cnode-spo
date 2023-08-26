@@ -1,0 +1,86 @@
+#!/usr/bin/bash
+
+set -e            # Exit immediately with error if any command exits with a non-zero result code
+set -u            # Exit immediately with error if we try to use an undefined variable
+set -o pipefail   # Exit immediately with error if any command in a pipe chain exits with a non-zero result code
+
+. config
+ensure_we_are_cold_node
+
+#####################
+# Stake Pool Keys
+#####################
+
+
+# Node keys
+cardano-cli node key-gen \
+    --cold-verification-key-file $COLD/node.vkey \
+    --cold-signing-key-file $COLD/node.skey \
+    --operational-certificate-issue-counter $SHARE/node.counter
+# We don't expect to keep this up-to-date, it's just a backup.
+cp $SHARE/node.counter $COLD/
+
+
+
+# Stake address
+cardano-cli stake-address key-gen \
+    --verification-key-file $COLD/stake.vkey \
+    --signing-key-file $COLD/stake.skey
+
+cardano-cli stake-address build \
+    --stake-verification-key-file $COLD/stake.vkey \
+    $NETWORK1 $NETWORK2 \
+    --out-file $COLD/stake.addr
+
+cardano-cli stake-address registration-certificate \
+    --stake-verification-key-file $COLD/stake.vkey \
+    --out-file $COLD/stake.cert
+cp $COLD/stake.cert $SHARE/
+
+
+
+# Payment address
+cardano-cli address key-gen \
+    --verification-key-file $COLD/payment.vkey \
+    --signing-key-file $COLD/payment.skey
+
+cardano-cli address build \
+    --payment-verification-key-file $COLD/payment.vkey \
+    --stake-verification-key-file $COLD/stake.vkey \
+    $NETWORK1 $NETWORK2 \
+    --out-file $COLD/payment.addr
+cp $COLD/payment.addr $SHARE/
+
+
+
+
+########################
+# Block Producer Keys
+########################
+
+
+cardano-cli node key-gen-VRF \
+    --verification-key-file $COLD/vrf.vkey \
+    --signing-key-file $COLD/vrf.skey
+cp $COLD/vrf.vkey $SHARE/
+cp $COLD/vrf.skey $SHARE/
+
+echo " "
+echo "########################"
+echo "# Done"
+echo "########################"
+echo " "
+echo "Initial COLD setup is complete."
+echo " "
+echo "We also created vrf.skey / vrf.vkey."
+echo "They belong on the block producer, but we keep a backup on the"
+echo "cold node; if the block producer ever becomes unrecoverable, we can create"
+echo "a new one using keys from the cold node."
+echo ""
+echo "Next, copy the SHARE directory ($SHARE)"
+echo "to the HOT node and run:"
+echo " "
+echo "        2.0-hot-request-block-producer-certificate"
+echo " "
+
+
