@@ -44,7 +44,7 @@ Guide to build docker image for Cardano node
 
 ## docker-compose
 
-Guide to run Cardano noe with Docker compose
+Guide to run Cardano node with Docker compose
 
 ---
 
